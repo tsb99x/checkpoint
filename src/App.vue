@@ -1,12 +1,32 @@
 <template>
     <div id="app">
-        Hello, World!
+        <input
+            type="text"
+            v-model.trim.lazy="newTaskText"
+            @keyup.enter="createTask"
+        />
+        <button @click="createTask">+</button>
+        <div v-for="task in tasks" :key="task.id">
+            {{ task }}
+        </div>
     </div>
 </template>
 
 <script>
     export default {
-        name: 'App'
+        name: 'App',
+        data() {
+            return {
+                newTaskText: '',
+                tasks: []
+            }
+        },
+        methods: {
+            createTask() {
+                this.tasks.push(this.newTaskText)
+                this.newTaskText = ''
+            }
+        }
     }
 </script>
 
