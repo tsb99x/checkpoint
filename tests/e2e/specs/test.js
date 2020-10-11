@@ -1,8 +1,13 @@
-// https://docs.cypress.io/api/introduction/api.html
-
-describe('My First Test', () => {
-    it('Visits the app root url', () => {
+describe('CheckPoint', () => {
+    beforeEach(() => {
         cy.visit('/')
-        cy.contains('h1', 'Welcome to Your Vue.js App')
+    })
+
+    it('should add a task', () => {
+        const noteText = 'some random note'
+
+        cy.get('input').type(noteText)
+        cy.get('button').click()
+        cy.contains('div', noteText)
     })
 })
