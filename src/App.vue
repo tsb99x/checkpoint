@@ -13,6 +13,18 @@
 </template>
 
 <script>
+    const TASKS_KEY = 'tasks'
+
+    function loadJson(key) {
+        let json = localStorage.getItem(key)
+        return JSON.parse(json)
+    }
+
+    function saveJson(key, obj) {
+        let json = JSON.stringify(obj)
+        localStorage.setItem(key, json)
+    }
+
     export default {
         name: 'App',
         data() {
@@ -21,9 +33,13 @@
                 tasks: []
             }
         },
+        mounted() {
+            this.tasks = loadJson(TASKS_KEY) || []
+        },
         methods: {
             createTask() {
                 this.tasks.push(this.newTaskText)
+                saveJson(TASKS_KEY, this.tasks)
                 this.newTaskText = ''
             }
         }
