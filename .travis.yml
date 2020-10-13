@@ -2,3 +2,7 @@ os: linux
 dist: focal
 language: node_js
 node_js: lts/*
+
+script:
+  - npm run lint -- --no-fix
+  - npm run test:e2e -- --headless
