@@ -36,6 +36,8 @@
         },
         methods: {
             createTask() {
+                if (!this.newTaskText) return
+
                 this.tasks.push(this.newTaskText)
                 saveJson(TASKS_KEY, this.tasks)
                 this.newTaskText = ''
