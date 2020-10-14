@@ -1,11 +1,9 @@
 <template>
     <div id="app">
-        <input
-            type="text"
-            v-model.trim.lazy="newTaskText"
-            @keyup.enter="createTask"
-        />
-        <button @click="createTask">+</button>
+        <form @submit.prevent="createTask()">
+            <input type="text" v-model.trim.lazy="newTaskText" />
+            <button>+</button>
+        </form>
         <div v-for="task in tasks" :key="task.id">
             {{ task }}
         </div>
