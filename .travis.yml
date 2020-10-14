@@ -1,0 +1,12 @@
+os: linux
+dist: focal
+language: node_js
+node_js: lts/*
+
+branches:
+  only:
+    - master
+
+script:
+  - npm run lint -- --no-fix
+  - npm run test:e2e -- --headless
