@@ -13,14 +13,11 @@
 <script>
     const TASKS_KEY = 'tasks'
 
-    function loadJson(key) {
-        let json = localStorage.getItem(key)
-        return JSON.parse(json)
-    }
-
-    function saveJson(key, obj) {
-        let json = JSON.stringify(obj)
-        localStorage.setItem(key, json)
+    function task(text) {
+        return {
+            text,
+            isDone: false
+        }
     }
 
     export default {
@@ -32,15 +29,24 @@
             }
         },
         mounted() {
-            this.tasks = loadJson(TASKS_KEY) || []
+            this.loadTasks()
         },
         methods: {
             createTask() {
                 if (!this.newTaskText) return
 
-                this.tasks.push(this.newTaskText)
-                saveJson(TASKS_KEY, this.tasks)
+                let newTask = task(this.newTaskText)
+                this.tasks.push(newTask)
+                this.saveTasks()
                 this.newTaskText = ''
+            },
+            loadTasks() {
+                let json = localStorage.getItem(TASKS_KEY)
+                this.tasks = JSON.parse(json) || []
+            },
+            saveTasks() {
+                let json = JSON.stringify(this.tasks)
+                localStorage.setItem(TASKS_KEY, json)
             }
         }
     }

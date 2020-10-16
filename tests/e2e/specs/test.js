@@ -1,5 +1,9 @@
-function expectTasksInStorageToEq(obj) {
-    cy.should(() => expect(localStorage.getItem('tasks')).to.eq(obj))
+function onTasksInStorage(fn) {
+    cy.should(() => {
+        let json = localStorage.getItem('tasks')
+        let tasks = JSON.parse(json)
+        fn(tasks)
+    })
 }
 
 describe('CheckPoint', () => {
@@ -8,20 +12,28 @@ describe('CheckPoint', () => {
     })
 
     it('should create a task and save it', () => {
-        const noteText = 'some random note'
+        const NOTE_TEXT = 'some random note'
 
-        cy.get('input').type(noteText)
+        function checkTaskExists() {
+            cy.contains('div', NOTE_TEXT)
+            onTasksInStorage(tasks => {
+                let texts = tasks.map(task => task.text)
+                expect(texts).to.include(NOTE_TEXT)
+            })
+        }
+
+        cy.get('input').type(NOTE_TEXT)
         cy.get('button').click()
-        cy.contains('div', noteText)
-        expectTasksInStorageToEq(`["${noteText}"]`)
+        checkTaskExists()
 
         cy.reload()
-        cy.contains('div', noteText)
-        expectTasksInStorageToEq(`["${noteText}"]`)
+        checkTaskExists()
     })
 
     it('should not create an empty task', () => {
         cy.get('button').click()
-        expectTasksInStorageToEq(null)
+        onTasksInStorage(tasks => {
+            expect(tasks).to.be.null
+        })
     })
 })
