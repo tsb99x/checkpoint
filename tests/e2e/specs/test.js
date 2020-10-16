@@ -1,8 +1,50 @@
+const NOTE_TEXT = 'some random note'
+
+function getByCy(selector) {
+    return cy.get(`[data-cy=${selector}]`)
+}
+
+function taskInput() {
+    return getByCy('task-input')
+}
+
+function createTaskBtn() {
+    return getByCy('create-task-btn')
+}
+
+function finishTaskBtn() {
+    return getByCy('finish-task-btn')
+}
+
+function activateTaskBtn() {
+    return getByCy('activate-task-btn')
+}
+
+function activeTasks() {
+    return getByCy('active-tasks')
+}
+
+function doneTasks() {
+    return getByCy('done-tasks')
+}
+
+const ALL_TASKS = () => true
+const ACTIVE_TASKS = task => !task.isDone
+const DONE_TASKS = task => task.isDone
+const TASK_TEXT = task => task.text
+
 function onTasksInStorage(fn) {
     cy.should(() => {
         let json = localStorage.getItem('tasks')
         let tasks = JSON.parse(json)
         fn(tasks)
+    })
+}
+
+function checkTaskIsInStorage(filter, mapper, value) {
+    onTasksInStorage(tasks => {
+        let processed = tasks.filter(filter).map(mapper)
+        expect(processed).to.include(value)
     })
 }
 
@@ -12,28 +54,35 @@ describe('CheckPoint', () => {
     })
 
     it('should create a task and save it', () => {
-        const NOTE_TEXT = 'some random note'
-
-        function checkTaskExists() {
-            cy.contains('div', NOTE_TEXT)
-            onTasksInStorage(tasks => {
-                let texts = tasks.map(task => task.text)
-                expect(texts).to.include(NOTE_TEXT)
-            })
-        }
-
-        cy.get('input').type(NOTE_TEXT)
-        cy.get('button').click()
-        checkTaskExists()
+        taskInput().type(NOTE_TEXT)
+        createTaskBtn().click()
+        activeTasks().contains(NOTE_TEXT)
+        checkTaskIsInStorage(ALL_TASKS, TASK_TEXT, NOTE_TEXT)
 
         cy.reload()
-        checkTaskExists()
+        activeTasks().contains(NOTE_TEXT)
+        checkTaskIsInStorage(ALL_TASKS, TASK_TEXT, NOTE_TEXT)
     })
 
     it('should not create an empty task', () => {
-        cy.get('button').click()
+        createTaskBtn().click()
         onTasksInStorage(tasks => {
             expect(tasks).to.be.null
         })
+    })
+
+    it('should mark tasks as finished and as active', () => {
+        taskInput().type(NOTE_TEXT)
+        createTaskBtn().click()
+        activeTasks().contains(NOTE_TEXT)
+        checkTaskIsInStorage(ACTIVE_TASKS, TASK_TEXT, NOTE_TEXT)
+
+        finishTaskBtn().click()
+        doneTasks().contains(NOTE_TEXT)
+        checkTaskIsInStorage(DONE_TASKS, TASK_TEXT, NOTE_TEXT)
+
+        activateTaskBtn().click()
+        activeTasks().contains(NOTE_TEXT)
+        checkTaskIsInStorage(ACTIVE_TASKS, TASK_TEXT, NOTE_TEXT)
     })
 })
