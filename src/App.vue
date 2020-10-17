@@ -1,11 +1,29 @@
 <template>
     <div id="app">
         <form @submit.prevent="createTask()">
-            <input type="text" v-model.trim.lazy="newTaskText" />
-            <button>+</button>
+            <input
+                data-cy="task-input"
+                type="text"
+                v-model.trim.lazy="newTaskText"
+            />
+            <button data-cy="create-task-btn">+</button>
         </form>
-        <div v-for="task in tasks" :key="task.id">
-            {{ task }}
+        <div data-cy="active-tasks">
+            <div v-for="task in activeTasks" :key="task.id">
+                {{ task.text }}
+                <button data-cy="finish-task-btn" @click="finishTask(task)">
+                    ✓
+                </button>
+            </div>
+        </div>
+        ---
+        <div data-cy="done-tasks">
+            <div v-for="task in doneTasks" :key="task.id">
+                <strike>{{ task.text }}</strike>
+                <button data-cy="activate-task-btn" @click="activateTask(task)">
+                    ↯
+                </button>
+            </div>
         </div>
     </div>
 </template>
@@ -13,14 +31,11 @@
 <script>
     const TASKS_KEY = 'tasks'
 
-    function loadJson(key) {
-        let json = localStorage.getItem(key)
-        return JSON.parse(json)
-    }
-
-    function saveJson(key, obj) {
-        let json = JSON.stringify(obj)
-        localStorage.setItem(key, json)
+    function task(text) {
+        return {
+            text,
+            isDone: false
+        }
     }
 
     export default {
@@ -31,16 +46,41 @@
                 tasks: []
             }
         },
+        computed: {
+            activeTasks: function() {
+                return this.tasks.filter(task => !task.isDone)
+            },
+            doneTasks: function() {
+                return this.tasks.filter(task => task.isDone)
+            }
+        },
         mounted() {
-            this.tasks = loadJson(TASKS_KEY) || []
+            this.loadTasks()
         },
         methods: {
             createTask() {
                 if (!this.newTaskText) return
 
-                this.tasks.push(this.newTaskText)
-                saveJson(TASKS_KEY, this.tasks)
+                let newTask = task(this.newTaskText)
+                this.tasks.push(newTask)
+                this.saveTasks()
                 this.newTaskText = ''
+            },
+            finishTask(task) {
+                task.isDone = true
+                this.saveTasks()
+            },
+            activateTask(task) {
+                task.isDone = false
+                this.saveTasks()
+            },
+            loadTasks() {
+                let json = localStorage.getItem(TASKS_KEY)
+                this.tasks = JSON.parse(json) || []
+            },
+            saveTasks() {
+                let json = JSON.stringify(this.tasks)
+                localStorage.setItem(TASKS_KEY, json)
             }
         }
     }
