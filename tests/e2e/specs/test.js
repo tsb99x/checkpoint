@@ -28,24 +28,42 @@ function doneTasks() {
     return getByCy('done-tasks')
 }
 
-const ALL_TASKS = () => true
 const ACTIVE_TASKS = task => !task.isDone
 const DONE_TASKS = task => task.isDone
-const TASK_TEXT = task => task.text
 
-function onTasksInStorage(fn) {
-    cy.should(() => {
+function afterToPass(filterFn) {
+    function allTasks() {
         let json = localStorage.getItem('tasks')
-        let tasks = JSON.parse(json)
-        fn(tasks)
-    })
+        console.log(`retrieved json: ${json}`)
+        return JSON.parse(json)
+    }
+
+    return {
+        be: {
+            null() {
+                cy.should(() => {
+                    expect(allTasks()).to.be.null
+                })
+            }
+        },
+        include(text) {
+            cy.should(() => {
+                let processed = allTasks()
+                    .filter(filterFn)
+                    .map(task => task.text)
+                expect(processed).to.include(text)
+            })
+        }
+    }
 }
 
-function checkTaskIsInStorage(filter, mapper, value) {
-    onTasksInStorage(tasks => {
-        let processed = tasks.filter(filter).map(mapper)
-        expect(processed).to.include(value)
-    })
+expect.storage = {
+    tasks: {
+        to: afterToPass(() => true),
+        filter: filterFn => ({
+            to: afterToPass(filterFn)
+        })
+    }
 }
 
 describe('CheckPoint', () => {
@@ -57,32 +75,30 @@ describe('CheckPoint', () => {
         taskInput().type(NOTE_TEXT)
         createTaskBtn().click()
         activeTasks().contains(NOTE_TEXT)
-        checkTaskIsInStorage(ALL_TASKS, TASK_TEXT, NOTE_TEXT)
+        expect.storage.tasks.to.include(NOTE_TEXT)
 
         cy.reload()
         activeTasks().contains(NOTE_TEXT)
-        checkTaskIsInStorage(ALL_TASKS, TASK_TEXT, NOTE_TEXT)
+        expect.storage.tasks.to.include(NOTE_TEXT)
     })
 
     it('should not create an empty task', () => {
         createTaskBtn().click()
-        onTasksInStorage(tasks => {
-            expect(tasks).to.be.null
-        })
+        expect.storage.tasks.to.be.null()
     })
 
     it('should mark tasks as finished and as active', () => {
         taskInput().type(NOTE_TEXT)
         createTaskBtn().click()
         activeTasks().contains(NOTE_TEXT)
-        checkTaskIsInStorage(ACTIVE_TASKS, TASK_TEXT, NOTE_TEXT)
+        expect.storage.tasks.filter(ACTIVE_TASKS).to.include(NOTE_TEXT)
 
         finishTaskBtn().click()
         doneTasks().contains(NOTE_TEXT)
-        checkTaskIsInStorage(DONE_TASKS, TASK_TEXT, NOTE_TEXT)
+        expect.storage.tasks.filter(DONE_TASKS).to.include(NOTE_TEXT)
 
         activateTaskBtn().click()
         activeTasks().contains(NOTE_TEXT)
-        checkTaskIsInStorage(ACTIVE_TASKS, TASK_TEXT, NOTE_TEXT)
+        expect.storage.tasks.filter(ACTIVE_TASKS).to.include(NOTE_TEXT)
     })
 })
