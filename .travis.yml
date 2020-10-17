@@ -7,6 +7,11 @@ branches:
   only:
     - master
 
+cache:
+  npm: true
+  directories:
+    - ~/.cache # Cypress
+
 script:
   - npm run lint -- --no-fix
   - npm run test:e2e -- --headless
