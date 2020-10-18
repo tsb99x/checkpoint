@@ -22,5 +22,6 @@ before_deploy:
 deploy:
   provider: pages
   strategy: git
+  skip_cleanup: true
   token: $GITHUB_TOKEN
   local_dir: dist
