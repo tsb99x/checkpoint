@@ -28,6 +28,14 @@ function doneTasks() {
     return getByCy('done-tasks')
 }
 
+function moveTaskUpBtn() {
+    return getByCy('move-task-up-btn')
+}
+
+function moveTaskDownBtn() {
+    return getByCy('move-task-down-btn')
+}
+
 const ACTIVE_TASKS = task => !task.isDone
 const DONE_TASKS = task => task.isDone
 
@@ -35,24 +43,29 @@ function afterToPass(filterFn) {
     function allTasks() {
         let json = localStorage.getItem('tasks')
         console.log(`retrieved json: ${json}`)
-        return JSON.parse(json)
+        return JSON.parse(json) || []
+    }
+
+    function forProcessedTasks(expectFn) {
+        cy.should(() => {
+            let processed = allTasks()
+                .filter(filterFn)
+                .map(task => task.text)
+            expectFn(processed)
+        })
     }
 
     return {
+        equal(order) {
+            forProcessedTasks(tasks => expect(tasks).to.eql(order))
+        },
         be: {
-            null() {
-                cy.should(() => {
-                    expect(allTasks()).to.be.null
-                })
+            empty() {
+                forProcessedTasks(tasks => expect(tasks).to.be.empty)
             }
         },
         include(text) {
-            cy.should(() => {
-                let processed = allTasks()
-                    .filter(filterFn)
-                    .map(task => task.text)
-                expect(processed).to.include(text)
-            })
+            forProcessedTasks(tasks => expect(tasks).to.include(text))
         }
     }
 }
@@ -84,7 +97,7 @@ describe('CheckPoint', () => {
 
     it('should not create an empty task', () => {
         createTaskBtn().click()
-        expect.storage.tasks.to.be.null()
+        expect.storage.tasks.to.be.empty()
     })
 
     it('should mark tasks as finished and as active', () => {
@@ -100,5 +113,27 @@ describe('CheckPoint', () => {
         activateTaskBtn().click()
         activeTasks().contains(NOTE_TEXT)
         expect.storage.tasks.filter(ACTIVE_TASKS).to.include(NOTE_TEXT)
+    })
+
+    it('should sort tasks properly', () => {
+        const TASK_A = 'task a'
+        const TASK_B = 'task b'
+
+        taskInput().type(`${TASK_A}{enter}`)
+        taskInput().type(`${TASK_B}{enter}`)
+
+        activeTasks()
+            .contains(TASK_A)
+            .within(() => {
+                moveTaskDownBtn().click()
+                expect.storage.tasks.to.equal([TASK_B, TASK_A])
+            })
+
+        activeTasks()
+            .contains(TASK_A)
+            .within(() => {
+                moveTaskUpBtn().click()
+                expect.storage.tasks.to.equal([TASK_A, TASK_B])
+            })
     })
 })
