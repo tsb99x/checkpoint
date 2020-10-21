@@ -1,4 +1,4 @@
-const NOTE_TEXT = 'some random note'
+const RANDOM_NOTE = 'random note'
 
 function getByCy(selector) {
     return cy.get(`[data-cy=${selector}]`)
@@ -36,104 +36,78 @@ function moveTaskDownBtn() {
     return getByCy('move-task-down-btn')
 }
 
-const ACTIVE_TASKS = task => !task.isDone
-const DONE_TASKS = task => task.isDone
-
-function afterToPass(filterFn) {
-    function allTasks() {
-        let json = localStorage.getItem('tasks')
-        console.log(`retrieved json: ${json}`)
-        return JSON.parse(json) || []
-    }
-
-    function forProcessedTasks(expectFn) {
-        cy.should(() => {
-            let processed = allTasks()
-                .filter(filterFn)
-                .map(task => task.text)
-            expectFn(processed)
-        })
-    }
-
-    return {
-        equal(order) {
-            forProcessedTasks(tasks => expect(tasks).to.eql(order))
-        },
-        be: {
-            empty() {
-                forProcessedTasks(tasks => expect(tasks).to.be.empty)
-            }
-        },
-        include(text) {
-            forProcessedTasks(tasks => expect(tasks).to.include(text))
-        }
-    }
-}
-
-expect.storage = {
-    tasks: {
-        to: afterToPass(() => true),
-        filter: filterFn => ({
-            to: afterToPass(filterFn)
-        })
-    }
-}
-
-describe('CheckPoint', () => {
+describe('checkpoint', () => {
     beforeEach(() => {
         cy.visit('/')
     })
 
     it('should create a task and save it', () => {
-        taskInput().type(NOTE_TEXT)
+        taskInput().type(RANDOM_NOTE)
         createTaskBtn().click()
-        activeTasks().contains(NOTE_TEXT)
-        expect.storage.tasks.to.include(NOTE_TEXT)
+        activeTasks().contains(RANDOM_NOTE)
 
         cy.reload()
-        activeTasks().contains(NOTE_TEXT)
-        expect.storage.tasks.to.include(NOTE_TEXT)
+        activeTasks().contains(RANDOM_NOTE)
     })
 
     it('should not create an empty task', () => {
         createTaskBtn().click()
-        expect.storage.tasks.to.be.empty()
+        activeTasks()
+            .children()
+            .should('have.length', 0)
+
+        taskInput().type(`{enter}`)
+        activeTasks()
+            .children()
+            .should('have.length', 0)
     })
 
     it('should mark tasks as finished and as active', () => {
-        taskInput().type(NOTE_TEXT)
-        createTaskBtn().click()
-        activeTasks().contains(NOTE_TEXT)
-        expect.storage.tasks.filter(ACTIVE_TASKS).to.include(NOTE_TEXT)
+        taskInput().type(`${RANDOM_NOTE}{enter}`)
+        activeTasks().contains(RANDOM_NOTE)
+        doneTasks()
+            .contains(RANDOM_NOTE)
+            .should('not.exist')
 
         finishTaskBtn().click()
-        doneTasks().contains(NOTE_TEXT)
-        expect.storage.tasks.filter(DONE_TASKS).to.include(NOTE_TEXT)
+        doneTasks().contains(RANDOM_NOTE)
+        activeTasks()
+            .contains(RANDOM_NOTE)
+            .should('not.exist')
 
         activateTaskBtn().click()
-        activeTasks().contains(NOTE_TEXT)
-        expect.storage.tasks.filter(ACTIVE_TASKS).to.include(NOTE_TEXT)
+        activeTasks().contains(RANDOM_NOTE)
+        doneTasks()
+            .contains(RANDOM_NOTE)
+            .should('not.exist')
     })
 
     it('should sort tasks properly', () => {
         const TASK_A = 'task a'
         const TASK_B = 'task b'
 
+        function checkDivOrder(arr) {
+            arr.forEach((el, idx) =>
+                cy
+                    .get('div')
+                    .eq(idx)
+                    .should('contain', el)
+            )
+        }
+
         taskInput().type(`${TASK_A}{enter}`)
         taskInput().type(`${TASK_B}{enter}`)
 
         activeTasks()
             .contains(TASK_A)
-            .within(() => {
-                moveTaskDownBtn().click()
-                expect.storage.tasks.to.equal([TASK_B, TASK_A])
-            })
+            .within(() => moveTaskDownBtn().click())
+
+        activeTasks().within(() => checkDivOrder([TASK_B, TASK_A]))
 
         activeTasks()
             .contains(TASK_A)
-            .within(() => {
-                moveTaskUpBtn().click()
-                expect.storage.tasks.to.equal([TASK_A, TASK_B])
-            })
+            .within(() => moveTaskUpBtn().click())
+
+        activeTasks().within(() => checkDivOrder([TASK_A, TASK_B]))
     })
 })
