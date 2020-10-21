@@ -42,6 +42,7 @@
 
 <script>
     import Vue from 'vue'
+    import { loadJson, saveJson } from './util'
 
     const TASKS_KEY = 'tasks'
 
@@ -99,13 +100,11 @@
                 this.saveTasks()
             },
             loadTasks() {
-                let json = localStorage.getItem(TASKS_KEY)
-                this.tasks = JSON.parse(json) || []
+                this.tasks = loadJson(TASKS_KEY, [])
             },
             saveTasks() {
                 this.tasks = this.activeTasks.concat(this.doneTasks)
-                let json = JSON.stringify(this.tasks)
-                localStorage.setItem(TASKS_KEY, json)
+                saveJson(TASKS_KEY, this.tasks)
             }
         }
     }
