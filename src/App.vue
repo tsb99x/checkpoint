@@ -51,13 +51,34 @@
             }
         },
         computed: {
-            ...getters
+            activeTasks() {
+                return getters.activeTasks()
+            },
+
+            doneTasks() {
+                return getters.doneTasks()
+            }
         },
         methods: {
-            ...actions,
             createTask() {
                 actions.createTask(this.newTaskText)
                 this.newTaskText = ''
+            },
+
+            finishTask(id) {
+                actions.finishTask(id)
+            },
+
+            activateTask(id) {
+                actions.activateTask(id)
+            },
+
+            moveTaskUp(id) {
+                actions.moveTaskUp(id)
+            },
+
+            moveTaskDown(id) {
+                actions.moveTaskDown(id)
             }
         }
     }
