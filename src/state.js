@@ -9,10 +9,18 @@ const CREATE_TASK = 'createTask'
 const FINISH_TASK = 'finishTask'
 const ACTIVATE_TASK = 'activateTask'
 
+let events
+
 export const state = Vue.observable({
     tasks: {},
     order: []
 })
+
+export function initialize() {
+    events = loadJson(EVENTS, [])
+    events.forEach(event => processors.apply(event))
+    state.order = loadJson(ORDER, collectOrder())
+}
 
 export const getters = {
     activeTasks() {
@@ -52,10 +60,6 @@ const processors = {
         }
     }
 }
-
-let events = loadJson(EVENTS, [])
-events.forEach(event => processors.apply(event))
-state.order = loadJson(ORDER, collectOrder())
 
 function pushEvent(event) {
     processors.apply(event)
