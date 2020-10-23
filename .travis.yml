@@ -15,6 +15,7 @@ cache:
 script:
   - npm run lint -- --no-fix
   - npm run test:e2e -- --headless
+  - cat ./coverage/lcov.info | coveralls
 
 before_deploy:
   - npm run build
