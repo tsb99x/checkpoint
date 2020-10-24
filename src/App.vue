@@ -10,19 +10,16 @@
         </form>
         <div data-cy="active-tasks">
             <div v-for="task in activeTasks" :key="task.id">
-                {{ task.text }}
-                <button data-cy="finish-task-btn" @click="finishTask(task)">
+                {{ task.title }}
+                <button data-cy="finish-task-btn" @click="finishTask(task.id)">
                     ✓
                 </button>
-                <button
-                    data-cy="move-task-up-btn"
-                    @click="shiftPosition(task, -1)"
-                >
+                <button data-cy="move-task-up-btn" @click="moveTaskUp(task.id)">
                     ↑
                 </button>
                 <button
                     data-cy="move-task-down-btn"
-                    @click="shiftPosition(task, +1)"
+                    @click="moveTaskDown(task.id)"
                 >
                     ↓
                 </button>
@@ -31,8 +28,11 @@
         ---
         <div data-cy="done-tasks">
             <div v-for="task in doneTasks" :key="task.id">
-                <strike>{{ task.text }}</strike>
-                <button data-cy="activate-task-btn" @click="activateTask(task)">
+                <strike>{{ task.title }}</strike>
+                <button
+                    data-cy="activate-task-btn"
+                    @click="activateTask(task.id)"
+                >
                     ↯
                 </button>
             </div>
@@ -41,71 +41,44 @@
 </template>
 
 <script>
-    import Vue from 'vue'
-
-    const TASKS_KEY = 'tasks'
-
-    function task(text) {
-        return {
-            text,
-            isDone: false
-        }
-    }
+    import { actions, getters } from './state'
 
     export default {
         name: 'App',
         data() {
             return {
-                newTaskText: '',
-                tasks: []
+                newTaskText: ''
             }
         },
         computed: {
-            activeTasks: function() {
-                return this.tasks.filter(task => !task.isDone)
+            activeTasks() {
+                return getters.activeTasks()
             },
-            doneTasks: function() {
-                return this.tasks.filter(task => task.isDone)
+
+            doneTasks() {
+                return getters.doneTasks()
             }
-        },
-        mounted() {
-            this.loadTasks()
         },
         methods: {
             createTask() {
-                if (!this.newTaskText) return
-
-                let newTask = task(this.newTaskText)
-                this.tasks.push(newTask)
-                this.saveTasks()
+                actions.createTask(this.newTaskText)
                 this.newTaskText = ''
             },
-            finishTask(task) {
-                task.isDone = true
-                this.saveTasks()
-            },
-            activateTask(task) {
-                task.isDone = false
-                this.saveTasks()
-            },
-            shiftPosition(origTask, indexOffset) {
-                let origIndex = this.tasks.indexOf(origTask)
-                let newIndex = origIndex + indexOffset
-                if (newIndex >= this.activeTasks.length || newIndex < 0) return
 
-                let otherTask = this.tasks[newIndex]
-                Vue.set(this.tasks, origIndex, otherTask)
-                Vue.set(this.tasks, newIndex, origTask)
-                this.saveTasks()
+            finishTask(id) {
+                actions.finishTask(id)
             },
-            loadTasks() {
-                let json = localStorage.getItem(TASKS_KEY)
-                this.tasks = JSON.parse(json) || []
+
+            activateTask(id) {
+                actions.activateTask(id)
             },
-            saveTasks() {
-                this.tasks = this.activeTasks.concat(this.doneTasks)
-                let json = JSON.stringify(this.tasks)
-                localStorage.setItem(TASKS_KEY, json)
+
+            moveTaskUp(id) {
+                actions.moveTaskUp(id)
+            },
+
+            moveTaskDown(id) {
+                actions.moveTaskDown(id)
             }
         }
     }
