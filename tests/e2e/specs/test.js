@@ -86,28 +86,37 @@ describe('checkpoint', () => {
         const TASK_A = 'task a'
         const TASK_B = 'task b'
 
-        function checkDivOrder(arr) {
-            arr.forEach((el, idx) =>
-                cy
-                    .get('div')
-                    .eq(idx)
-                    .should('contain', el)
-            )
+        function expectTaskOrder(arr) {
+            activeTasks().within(() => {
+                arr.forEach((el, idx) =>
+                    cy
+                        .get('div')
+                        .eq(idx)
+                        .should('contain', el)
+                )
+            })
+        }
+
+        function forActiveTask(taskText, fn) {
+            activeTasks()
+                .contains(taskText)
+                .within(fn)
         }
 
         taskInput().type(`${TASK_A}{enter}`)
         taskInput().type(`${TASK_B}{enter}`)
+        expectTaskOrder([TASK_B, TASK_A])
 
-        activeTasks()
-            .contains(TASK_A)
-            .within(() => moveTaskDownBtn().click())
+        forActiveTask(TASK_A, () => moveTaskDownBtn().click())
+        expectTaskOrder([TASK_B, TASK_A])
 
-        activeTasks().within(() => checkDivOrder([TASK_B, TASK_A]))
+        forActiveTask(TASK_A, () => moveTaskUpBtn().click())
+        expectTaskOrder([TASK_A, TASK_B])
 
-        activeTasks()
-            .contains(TASK_A)
-            .within(() => moveTaskUpBtn().click())
+        forActiveTask(TASK_A, () => moveTaskUpBtn().click())
+        expectTaskOrder([TASK_A, TASK_B])
 
-        activeTasks().within(() => checkDivOrder([TASK_A, TASK_B]))
+        forActiveTask(TASK_A, () => moveTaskDownBtn().click())
+        expectTaskOrder([TASK_B, TASK_A])
     })
 })
