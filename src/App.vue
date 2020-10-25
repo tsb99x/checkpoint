@@ -9,42 +9,36 @@
             <button data-cy="create-task-btn">+</button>
         </form>
         <div data-cy="active-tasks">
-            <div v-for="task in activeTasks" :key="task.id">
-                {{ task.title }}
-                <button data-cy="finish-task-btn" @click="finishTask(task.id)">
-                    ✓
-                </button>
-                <button data-cy="move-task-up-btn" @click="moveTaskUp(task.id)">
-                    ↑
-                </button>
-                <button
-                    data-cy="move-task-down-btn"
-                    @click="moveTaskDown(task.id)"
-                >
-                    ↓
-                </button>
-            </div>
+            <active-task
+                v-for="task in activeTasks"
+                :key="task.id"
+                :id="task.id"
+                :title="task.title"
+            />
         </div>
         ---
         <div data-cy="done-tasks">
-            <div v-for="task in doneTasks" :key="task.id">
-                <strike>{{ task.title }}</strike>
-                <button
-                    data-cy="activate-task-btn"
-                    @click="activateTask(task.id)"
-                >
-                    ↯
-                </button>
-            </div>
+            <done-task
+                v-for="task in doneTasks"
+                :key="task.id"
+                :id="task.id"
+                :title="task.title"
+            />
         </div>
     </div>
 </template>
 
 <script>
     import { actions, getters } from './state'
+    import ActiveTask from './ActiveTask'
+    import DoneTask from './DoneTask'
 
     export default {
         name: 'App',
+        components: {
+            ActiveTask,
+            DoneTask
+        },
         data() {
             return {
                 newTaskText: ''
@@ -63,22 +57,6 @@
             createTask() {
                 actions.createTask(this.newTaskText)
                 this.newTaskText = ''
-            },
-
-            finishTask(id) {
-                actions.finishTask(id)
-            },
-
-            activateTask(id) {
-                actions.activateTask(id)
-            },
-
-            moveTaskUp(id) {
-                actions.moveTaskUp(id)
-            },
-
-            moveTaskDown(id) {
-                actions.moveTaskDown(id)
             }
         }
     }
