@@ -12,6 +12,18 @@ function createTaskBtn() {
     return getByCy('create-task-btn')
 }
 
+function titleInput() {
+    return getByCy('title-input')
+}
+
+function editTaskTitleBtn() {
+    return getByCy('edit-task-title-btn')
+}
+
+function saveTitleBtn() {
+    return getByCy('save-title-btn')
+}
+
 function finishTaskBtn() {
     return getByCy('finish-task-btn')
 }
@@ -100,6 +112,7 @@ describe('checkpoint', () => {
         function forActiveTask(taskText, fn) {
             activeTasks()
                 .contains(taskText)
+                .parent()
                 .within(fn)
         }
 
@@ -118,5 +131,55 @@ describe('checkpoint', () => {
 
         forActiveTask(TASK_A, () => moveTaskDownBtn().click())
         expectTaskOrder([TASK_B, TASK_A])
+    })
+
+    it('should edit the task title properly', () => {
+        const NEW_TEXT = 'new text'
+
+        taskInput().type(`${RANDOM_NOTE}{enter}`)
+        activeTasks()
+            .contains(RANDOM_NOTE)
+            .parent()
+            .within(() => {
+                titleInput().should('not.exist')
+                saveTitleBtn().should('not.exist')
+
+                editTaskTitleBtn().click()
+                titleInput()
+                    .clear()
+                    .type('{enter}')
+                cy.get('span')
+                    .contains(RANDOM_NOTE)
+                    .should('exist')
+                cy.get('span')
+                    .contains(NEW_TEXT)
+                    .should('not.exist')
+
+                editTaskTitleBtn().click()
+                titleInput().type('{enter}')
+                cy.get('span')
+                    .contains(RANDOM_NOTE)
+                    .should('exist')
+                cy.get('span')
+                    .contains(NEW_TEXT)
+                    .should('not.exist')
+
+                editTaskTitleBtn().click()
+                titleInput()
+                    .clear()
+                    .type(NEW_TEXT)
+                saveTitleBtn().click()
+
+                titleInput().should('not.exist')
+                saveTitleBtn().should('not.exist')
+                cy.get('span')
+                    .contains(NEW_TEXT)
+                    .should('exist')
+            })
+
+        cy.reload()
+        activeTasks()
+            .contains(NEW_TEXT)
+            .should('exist')
     })
 })

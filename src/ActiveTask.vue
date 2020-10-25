@@ -1,6 +1,21 @@
 <template>
     <div>
-        {{ title }}
+        <form v-if="isEditMode" @submit.prevent="saveTitle()">
+            <input
+                data-cy="title-input"
+                type="text"
+                v-model.trim.lazy="newTitle"
+            />
+            <button data-cy="save-title-btn">💾</button>
+        </form>
+        <span v-if="!isEditMode">{{ title }}</span>
+        <button
+            v-if="!isEditMode"
+            data-cy="edit-task-title-btn"
+            @click="editTask()"
+        >
+            ✎
+        </button>
         <button data-cy="finish-task-btn" @click="finishTask()">
             ✓
         </button>
@@ -18,11 +33,27 @@
 
     export default {
         name: 'ActiveTask',
+        data() {
+            return {
+                newTitleInput: '',
+                isEditMode: false
+            }
+        },
         props: {
             id: String,
             title: String
         },
         methods: {
+            editTask() {
+                this.newTitle = this.title
+                this.isEditMode = true
+            },
+
+            saveTitle() {
+                actions.editTaskTitle(this.id, this.newTitle)
+                this.isEditMode = false
+            },
+
             finishTask() {
                 actions.finishTask(this.id)
             },
@@ -37,3 +68,9 @@
         }
     }
 </script>
+
+<style scoped>
+    form {
+        display: inline;
+    }
+</style>
