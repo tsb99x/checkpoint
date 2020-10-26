@@ -133,53 +133,49 @@ describe('checkpoint', () => {
         expectTaskOrder([TASK_B, TASK_A])
     })
 
-    it('should edit the task title properly', () => {
+    describe('tasks editing', () => {
+        const OLD_TEXT = 'old text'
         const NEW_TEXT = 'new text'
 
-        taskInput().type(`${RANDOM_NOTE}{enter}`)
-        activeTasks()
-            .contains(RANDOM_NOTE)
-            .parent()
-            .within(() => {
-                titleInput().should('not.exist')
-                saveTitleBtn().should('not.exist')
+        beforeEach('prepare the test data and check the state', () => {
+            taskInput().type(`${OLD_TEXT}{enter}`)
+            titleInput().should('not.exist')
+            saveTitleBtn().should('not.exist')
+        })
 
-                editTaskTitleBtn().click()
-                titleInput()
-                    .clear()
-                    .type('{enter}')
-                cy.get('span')
-                    .contains(RANDOM_NOTE)
-                    .should('exist')
-                cy.get('span')
-                    .contains(NEW_TEXT)
-                    .should('not.exist')
+        afterEach('edit elements should be gone', () => {
+            titleInput().should('not.exist')
+            saveTitleBtn().should('not.exist')
+        })
 
-                editTaskTitleBtn().click()
-                titleInput().type('{enter}')
-                cy.get('span')
-                    .contains(RANDOM_NOTE)
-                    .should('exist')
-                cy.get('span')
-                    .contains(NEW_TEXT)
-                    .should('not.exist')
+        it('should not change the title to an empty one', () => {
+            editTaskTitleBtn().click()
+            titleInput()
+                .clear()
+                .type('{enter}')
+            cy.contains(OLD_TEXT).should('exist')
+            cy.contains(NEW_TEXT).should('not.exist')
+        })
 
-                editTaskTitleBtn().click()
-                titleInput()
-                    .clear()
-                    .type(NEW_TEXT)
-                saveTitleBtn().click()
+        it('should not change the title if it is saved as-is', () => {
+            editTaskTitleBtn().click()
+            titleInput().type('{enter}')
+            cy.contains(OLD_TEXT).should('exist')
+            cy.contains(NEW_TEXT).should('not.exist')
+        })
 
-                titleInput().should('not.exist')
-                saveTitleBtn().should('not.exist')
-                cy.get('span')
-                    .contains(NEW_TEXT)
-                    .should('exist')
-            })
+        it('should properly change the title after the edit', () => {
+            editTaskTitleBtn().click()
+            titleInput()
+                .clear()
+                .type(NEW_TEXT)
+            saveTitleBtn().click()
+            cy.contains(OLD_TEXT).should('not.exist')
+            cy.contains(NEW_TEXT).should('exist')
 
-        cy.reload()
-        activeTasks()
-            .contains(NEW_TEXT)
-            .should('exist')
+            cy.reload()
+            cy.contains(OLD_TEXT).should('not.exist')
+            cy.contains(NEW_TEXT).should('exist')
+        })
     })
 })
