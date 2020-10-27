@@ -12,6 +12,18 @@ function createTaskBtn() {
     return getByCy('create-task-btn')
 }
 
+function titleInput() {
+    return getByCy('title-input')
+}
+
+function editTaskTitleBtn() {
+    return getByCy('edit-task-title-btn')
+}
+
+function saveTitleBtn() {
+    return getByCy('save-title-btn')
+}
+
 function finishTaskBtn() {
     return getByCy('finish-task-btn')
 }
@@ -100,6 +112,7 @@ describe('checkpoint', () => {
         function forActiveTask(taskText, fn) {
             activeTasks()
                 .contains(taskText)
+                .parent()
                 .within(fn)
         }
 
@@ -118,5 +131,51 @@ describe('checkpoint', () => {
 
         forActiveTask(TASK_A, () => moveTaskDownBtn().click())
         expectTaskOrder([TASK_B, TASK_A])
+    })
+
+    describe('tasks editing', () => {
+        const OLD_TEXT = 'old text'
+        const NEW_TEXT = 'new text'
+
+        beforeEach('prepare the test data and check the state', () => {
+            taskInput().type(`${OLD_TEXT}{enter}`)
+            titleInput().should('not.exist')
+            saveTitleBtn().should('not.exist')
+        })
+
+        afterEach('edit elements should be gone', () => {
+            titleInput().should('not.exist')
+            saveTitleBtn().should('not.exist')
+        })
+
+        it('should not change the title to an empty one', () => {
+            editTaskTitleBtn().click()
+            titleInput()
+                .clear()
+                .type('{enter}')
+            cy.contains(OLD_TEXT).should('exist')
+            cy.contains(NEW_TEXT).should('not.exist')
+        })
+
+        it('should not change the title if it is saved as-is', () => {
+            editTaskTitleBtn().click()
+            titleInput().type('{enter}')
+            cy.contains(OLD_TEXT).should('exist')
+            cy.contains(NEW_TEXT).should('not.exist')
+        })
+
+        it('should properly change the title after the edit', () => {
+            editTaskTitleBtn().click()
+            titleInput()
+                .clear()
+                .type(NEW_TEXT)
+            saveTitleBtn().click()
+            cy.contains(OLD_TEXT).should('not.exist')
+            cy.contains(NEW_TEXT).should('exist')
+
+            cy.reload()
+            cy.contains(OLD_TEXT).should('not.exist')
+            cy.contains(NEW_TEXT).should('exist')
+        })
     })
 })

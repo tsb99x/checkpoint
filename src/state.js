@@ -6,6 +6,7 @@ const EVENTS = 'events'
 const ORDER = 'order'
 
 const CREATE_TASK = 'createTask'
+const EDIT_TASK_TITLE = 'editTaskTitle'
 const FINISH_TASK = 'finishTask'
 const ACTIVATE_TASK = 'activateTask'
 
@@ -47,6 +48,11 @@ const processors = {
                 title: event.title,
                 isDone: false
             })
+        }
+    },
+    editTaskTitle: {
+        v1(event) {
+            state.tasks[event.entityId].title = event.title
         }
     },
     finishTask: {
@@ -100,6 +106,14 @@ export const actions = {
         pushEvent(event)
         state.order.unshift(event.entityId)
         persistOrder()
+    },
+
+    editTaskTitle(taskId, title) {
+        if (!title) return
+        if (state.tasks[taskId].title === title) return
+
+        let event = { title, ...newEvent(EDIT_TASK_TITLE, taskId) }
+        pushEvent(event)
     },
 
     finishTask(taskId) {
