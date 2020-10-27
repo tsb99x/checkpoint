@@ -69,6 +69,19 @@
         -moz-osx-font-smoothing: grayscale;
         text-align: center;
         color: #2c3e50;
+        margin: 0 auto;
         margin-top: 60px;
+        max-width: 24rem;
+    }
+
+    form {
+        display: flex;
+        justify-content: stretch;
+        align-items: center;
+        margin: 1rem 0;
+    }
+
+    input {
+        flex-grow: 1;
     }
 </style>
