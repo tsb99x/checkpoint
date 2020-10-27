@@ -1,13 +1,6 @@
 <template>
     <div id="app">
-        <form @submit.prevent="createTask()">
-            <input
-                data-cy="task-input"
-                type="text"
-                v-model.trim.lazy="newTaskText"
-            />
-            <button data-cy="create-task-btn">+</button>
-        </form>
+        <task-input />
         <div data-cy="active-tasks">
             <active-task
                 v-for="task in activeTasks"
@@ -29,20 +22,17 @@
 </template>
 
 <script>
-    import { actions, getters } from './state'
+    import { getters } from './state'
+    import TaskInput from './TaskInput'
     import ActiveTask from './ActiveTask'
     import DoneTask from './DoneTask'
 
     export default {
         name: 'App',
         components: {
+            TaskInput,
             ActiveTask,
             DoneTask
-        },
-        data() {
-            return {
-                newTaskText: ''
-            }
         },
         computed: {
             activeTasks() {
@@ -51,12 +41,6 @@
 
             doneTasks() {
                 return getters.doneTasks()
-            }
-        },
-        methods: {
-            createTask() {
-                actions.createTask(this.newTaskText)
-                this.newTaskText = ''
             }
         }
     }
@@ -72,16 +56,5 @@
         margin: 0 auto;
         margin-top: 60px;
         max-width: 24rem;
-    }
-
-    form {
-        display: flex;
-        justify-content: stretch;
-        align-items: center;
-        margin: 1rem 0;
-    }
-
-    input {
-        flex-grow: 1;
     }
 </style>

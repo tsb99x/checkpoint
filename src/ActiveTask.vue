@@ -81,7 +81,6 @@
 
     form {
         display: flex;
-        margin: 0;
     }
 
     span {
