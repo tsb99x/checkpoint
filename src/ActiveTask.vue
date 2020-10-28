@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div id="root">
         <form v-if="isEditMode" @submit.prevent="saveTitle()">
             <input
                 data-cy="title-input"
@@ -70,7 +70,26 @@
 </script>
 
 <style scoped>
+    #root {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.33rem 1rem;
+        margin: 0.25rem 0;
+        background-color: lightgrey;
+    }
+
     form {
-        display: inline;
+        display: flex;
+    }
+
+    span {
+        text-align: left;
+    }
+
+    form,
+    input,
+    span {
+        flex-grow: 1;
     }
 </style>
